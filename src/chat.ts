@@ -225,6 +225,7 @@ async function streamClaudeResponse(
 
   try {
     // Use Claude Agent SDK's query function
+    const claudeCli = findClaudeCli();
     const q = query({
       prompt: fullPrompt,
       options: {
@@ -246,7 +247,8 @@ async function streamClaudeResponse(
         ],
         maxTurns: 10, // Allow multiple turns for tool use
         includePartialMessages: true, // Enable streaming output
-        env: process.env as { [key: string]: string | undefined }, // Pass all env vars
+        env: process.env as { [key: string]: string | undefined }, // Pass through all env vars including auth
+        pathToClaudeCodeExecutable: claudeCli, // Use system Claude CLI
       },
     });
 

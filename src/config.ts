@@ -1,13 +1,5 @@
 import { homedir } from 'os';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { config as dotenvConfig } from 'dotenv';
-
-// Load .env file from project directory (not cwd)
-// Get the directory where this module is located
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-dotenvConfig({ path: join(__dirname, '..', '.env') });
+import { join } from 'path';
 
 export const config = {
   // Data directory
