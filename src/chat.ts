@@ -5,6 +5,8 @@
 import * as readline from "readline";
 import { execSync } from "child_process";
 import chalk from "chalk";
+import { marked } from "marked";
+import { markedTerminal } from "marked-terminal";
 import {
   query,
   createSdkMcpServer,
@@ -22,6 +24,23 @@ import {
   getSourceById,
 } from "./kb/index.js";
 import { config } from "./config.js";
+
+// Configure marked with terminal renderer
+marked.use(
+  markedTerminal({
+    reflowText: true,
+    width: process.stdout.columns || 80,
+  })
+);
+
+/**
+ * Render markdown text for terminal display
+ */
+function renderMarkdown(text: string): string {
+  // Use synchronous parsing with async: false
+  const rendered = marked.parse(text, { async: false }) as string;
+  return rendered.trimEnd(); // Remove trailing newlines from marked
+}
 
 // Find system Claude CLI path
 function findClaudeCli(): string | undefined {
@@ -406,9 +425,10 @@ async function streamClaudeResponse(
       }
     }
 
-    // Flush remaining buffer as final answer (normal color)
+    // Flush remaining buffer as final answer with markdown rendering
     if (textBuffer) {
-      process.stdout.write(textBuffer);
+      const rendered = renderMarkdown(textBuffer);
+      process.stdout.write(rendered);
       response += textBuffer;
     }
   } catch (err) {
