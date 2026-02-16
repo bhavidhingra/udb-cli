@@ -7,7 +7,7 @@ A local RAG (Retrieval-Augmented Generation) CLI that lets you save and search p
 UDB is your personal knowledge assistant. You talk to it in plain English, and it can:
 
 - **Save** notes, commands, and snippets
-- **Ingest** web articles, YouTube videos, tweets, and Confluence pages
+- **Ingest** web articles, YouTube videos, tweets, Confluence pages, and Google Docs
 - **Search** your knowledge base semantically
 - **Read** local files and add them to your KB
 - **Answer** questions using only your saved knowledge
@@ -96,6 +96,15 @@ UDB: Ingested successfully!
   Chunks: 3
 ```
 
+**Ingest a Google Doc:**
+
+```
+You: Save this doc: https://docs.google.com/document/d/1abc123xyz/edit
+UDB: Ingested successfully!
+  Source ID: kb-1234567890-gdoc
+  Chunks: 4
+```
+
 **Read and save a local file:**
 
 ```
@@ -155,14 +164,15 @@ UDB: Added successfully!
 
 ### Supported Content Types
 
-| Type           | Source         | Extraction Method      |
-| -------------- | -------------- | ---------------------- |
-| **Articles**   | Web URLs       | Mozilla Readability    |
-| **Videos**     | YouTube        | yt-dlp (transcripts)   |
-| **Tweets**     | Twitter/X      | FxTwitter API          |
-| **Confluence** | Atlassian      | REST API               |
-| **Text**       | Direct input   | As-is                  |
-| **Files**      | Local paths    | Claude's Read tool     |
+| Type            | Source         | Extraction Method      |
+| --------------- | -------------- | ---------------------- |
+| **Articles**    | Web URLs       | Mozilla Readability    |
+| **Videos**      | YouTube        | yt-dlp (transcripts)   |
+| **Tweets**      | Twitter/X      | FxTwitter API          |
+| **Confluence**  | Atlassian      | REST API               |
+| **Google Docs** | Google Drive   | OAuth 2.0 API          |
+| **Text**        | Direct input   | As-is                  |
+| **Files**       | Local paths    | Claude's Read tool     |
 
 ### Search
 
@@ -213,16 +223,32 @@ To get an Atlassian API token:
 2. Create a new API token
 3. Add it to your `.env` file along with your Atlassian email
 
+### Google Docs Setup
+
+To ingest Google Docs, you need to set up OAuth 2.0 credentials:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create or select a project
+3. Enable the **Google Docs API** (APIs & Services → Enable APIs)
+4. Create OAuth credentials (APIs & Services → Credentials → Create Credentials → OAuth client ID)
+   - Configure OAuth consent screen if prompted (External, add your email as test user)
+   - Application type: **Desktop app**
+5. Download the credentials JSON and save as `~/.udb/credentials.json`
+
+On first use, UDB will open your browser for Google authorization. Tokens are stored in `~/.udb/google-tokens.json` and automatically refresh
+
 ## Data Storage
 
 All data is stored locally in `~/.udb/`:
 
 ```
 ~/.udb/
-├── kb.db           # SQLite database
-├── kb.db-shm       # (if WAL mode enabled)
-├── kb.db-wal       # (if WAL mode enabled)
-└── locks/          # Concurrency lock files
+├── kb.db              # SQLite database
+├── kb.db-shm          # (if WAL mode enabled)
+├── kb.db-wal          # (if WAL mode enabled)
+├── credentials.json   # Google OAuth credentials (you create this)
+├── google-tokens.json # Google OAuth tokens (auto-generated)
+└── locks/             # Concurrency lock files
 ```
 
 ### Database Schema
