@@ -241,7 +241,7 @@ async function streamClaudeResponse(
           'mcp__udb-kb__kb_ingest',
           'mcp__udb-kb__kb_list',
           'mcp__udb-kb__kb_delete',
-          // File tools (so Claude can read files and add to KB)
+          // File tools
           'Read',
           'Glob',
         ],

@@ -318,6 +318,15 @@ export function detectSourceType(url: string): SourceType {
     return 'pdf';
   }
 
+  // Confluence (Atlassian)
+  if (
+    /^(?:https?:\/\/)?[\w-]+\.atlassian\.net\/wiki\/spaces\/[^/]+\/pages\/\d+/i.test(
+      url,
+    )
+  ) {
+    return 'confluence';
+  }
+
   // Default to article
   return 'article';
 }

@@ -2,7 +2,7 @@
  * Knowledge Base Types
  */
 
-export type SourceType = 'article' | 'video' | 'pdf' | 'text' | 'tweet' | 'other';
+export type SourceType = 'article' | 'video' | 'pdf' | 'text' | 'tweet' | 'confluence' | 'other';
 
 export interface KBSource {
   id: string;

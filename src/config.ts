@@ -24,6 +24,9 @@ export const config = {
 
   // Claude model (Bedrock inference profile)
   CLAUDE_MODEL: process.env.CLAUDE_MODEL || 'us.anthropic.claude-sonnet-4-20250514-v1:0',
+
+  // Atlassian credentials (for Confluence/Jira REST API access)
+  ATLASSIAN_EMAIL: process.env.ATLASSIAN_EMAIL || '',
 };
 
 export function getDbPath(): string {

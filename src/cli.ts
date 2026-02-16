@@ -4,6 +4,9 @@
  * UDB - Personal Knowledge Base with RAG
  */
 
+// Load environment variables from .env file
+import 'dotenv/config';
+
 import chalk from 'chalk';
 import { getDb, closeDb } from './db.js';
 import { initKB, isKBOperational } from './kb/index.js';
