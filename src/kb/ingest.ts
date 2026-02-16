@@ -327,6 +327,11 @@ export function detectSourceType(url: string): SourceType {
     return 'confluence';
   }
 
+  // Google Docs
+  if (/docs\.google\.com\/document\/d\/[a-zA-Z0-9-_]+/.test(url)) {
+    return 'google_docs';
+  }
+
   // Default to article
   return 'article';
 }

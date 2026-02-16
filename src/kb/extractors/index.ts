@@ -6,6 +6,7 @@ export { extractArticle } from './article.js';
 export { extractTweet } from './tweet.js';
 export { extractVideoTranscript, extractVideoId } from './video.js';
 export { extractConfluence } from './confluence.js';
+export { extractGoogleDocs, isGoogleDocsUrl } from './google-docs.js';
 
 export type { ExtractedContent } from './article.js';
 
@@ -18,6 +19,7 @@ import { extractArticle } from './article.js';
 import { extractTweet } from './tweet.js';
 import { extractVideoTranscript } from './video.js';
 import { extractConfluence } from './confluence.js';
+import { extractGoogleDocs } from './google-docs.js';
 
 const EXTRACTORS: Record<
   SourceType,
@@ -29,6 +31,7 @@ const EXTRACTORS: Record<
   text: async () => null, // Direct content, no extraction needed
   tweet: extractTweet,
   confluence: extractConfluence, // Atlassian Confluence via REST API
+  google_docs: extractGoogleDocs, // Google Docs via OAuth API
   other: extractArticle,
 };
 

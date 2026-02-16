@@ -33,6 +33,7 @@ const MIN_LENGTHS: Record<SourceType, number> = {
   text: 20,
   tweet: 20,
   confluence: 20, // Confluence pages can be short notes
+  google_docs: 20, // Google Docs can be short notes
   other: 100,
 };
 
