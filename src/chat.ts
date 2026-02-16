@@ -356,32 +356,55 @@ async function streamClaudeResponse(
     });
 
     // Process messages
+    // Buffer text to distinguish thoughts (muted) from final answer (normal)
+    let textBuffer = "";
     let hasOutputText = false;
+
     for await (const message of q) {
       if (message.type === "stream_event") {
         // Handle streaming partial messages
         const event = message.event;
-        // Add newline before new content blocks (after tool use) for readability
-        if (event.type === "content_block_start" && hasOutputText) {
-          process.stdout.write("\n");
-          response += "\n";
+
+        if (event.type === "content_block_start") {
+          // Check if this is a tool_use block - if so, flush buffer as muted thought
+          const contentBlock = (event as { content_block?: { type: string } }).content_block;
+          if (contentBlock?.type === "tool_use" && textBuffer) {
+            // Print buffered text as muted thought with newline
+            process.stdout.write(chalk.dim(textBuffer) + "\n");
+            response += textBuffer + "\n";
+            textBuffer = "";
+          }
+          // Add newline before new text blocks for readability (after previous muted thought)
+          if (contentBlock?.type === "text" && hasOutputText && textBuffer === "") {
+            // Don't add extra newline - already added after muted thought
+          }
         }
+
         if (event.type === "content_block_delta" && "delta" in event) {
           const delta = event.delta;
           if ("text" in delta) {
-            process.stdout.write(delta.text);
-            response += delta.text;
+            // Buffer text instead of printing immediately
+            textBuffer += delta.text;
             hasOutputText = true;
           }
         }
       } else if (message.type === "assistant") {
-        // Final assistant message (if streaming not available)
-        const text = extractTextFromMessage(message);
-        if (text && !response) {
-          process.stdout.write(text);
-          response = text;
+        // Skip - we handle streaming via stream_event
+        // Only use this if no streaming happened at all
+        if (!hasOutputText && !textBuffer && !response) {
+          const text = extractTextFromMessage(message);
+          if (text) {
+            process.stdout.write(text);
+            response = text;
+          }
         }
       }
+    }
+
+    // Flush remaining buffer as final answer (normal color)
+    if (textBuffer) {
+      process.stdout.write(textBuffer);
+      response += textBuffer;
     }
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
