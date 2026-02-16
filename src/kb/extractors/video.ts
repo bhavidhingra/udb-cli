@@ -13,6 +13,36 @@ import crypto from 'crypto';
 // yt-dlp path - configurable via env, falls back to PATH resolution
 const YTDLP_PATH = process.env.YTDLP_PATH || 'yt-dlp';
 
+// Track yt-dlp availability
+let ytDlpAvailable: boolean | null = null; // null = not checked yet
+
+/**
+ * Check if yt-dlp is installed and accessible
+ */
+export async function checkYtDlpAvailable(): Promise<boolean> {
+  try {
+    await execSafe(YTDLP_PATH, ['--version'], { timeout: 5000 });
+    ytDlpAvailable = true;
+    return true;
+  } catch (err: unknown) {
+    // ENOENT means the binary doesn't exist
+    if (err instanceof Error && 'code' in err && err.code === 'ENOENT') {
+      ytDlpAvailable = false;
+      return false;
+    }
+    // Other errors (e.g., permission issues) - assume it might work
+    ytDlpAvailable = true;
+    return true;
+  }
+}
+
+/**
+ * Check if yt-dlp is available (returns cached result or null if not checked)
+ */
+export function isYtDlpAvailable(): boolean | null {
+  return ytDlpAvailable;
+}
+
 export interface ExtractedContent {
   title: string;
   content: string;
@@ -138,8 +168,18 @@ export async function extractVideoTranscript(
       title,
       content: `[Video: ${title}]\n\nNo transcript available. URL: ${url}`,
     };
-  } catch (err) {
-    logger.error('Video extraction failed', url, err);
+  } catch (err: unknown) {
+    // Check if yt-dlp is not installed
+    if (err instanceof Error && 'code' in err && err.code === 'ENOENT') {
+      ytDlpAvailable = false;
+      logger.error(
+        'yt-dlp is not installed. Install it to enable YouTube video ingestion:',
+        '\n  brew install yt-dlp   # macOS',
+        '\n  pip install yt-dlp    # any platform',
+      );
+    } else {
+      logger.error('Video extraction failed', url, err);
+    }
     return null;
   } finally {
     // Centralized cleanup — always runs

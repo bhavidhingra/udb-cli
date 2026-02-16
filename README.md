@@ -16,18 +16,36 @@ All data stays local on your machine. No cloud storage.
 
 ## Quick Start
 
+### Option 1: Automated Install
+
+```bash
+./install.sh
+```
+
+This script will check/install dependencies (Ollama, yt-dlp), build the project, and set up the embedding model.
+
+### Option 2: Manual Install
+
 ```bash
 # Add to your shell config (~/.zshrc or ~/.bashrc)
 export AWS_PROFILE=dev
 
-# Install dependencies
-npm install
+# Install Ollama (required for embeddings)
+brew install ollama   # macOS
+# OR download from https://ollama.ai/download
 
-# Start Ollama (required for embeddings)
+# Start Ollama and pull embedding model
 ollama serve
 ollama pull nomic-embed-text
 
-# Run UDB
+# Optional: Install yt-dlp for YouTube video ingestion
+brew install yt-dlp   # macOS
+# OR: pip install yt-dlp  # any platform
+
+# Install npm dependencies
+npm install
+
+# Build the project
 npm run build
 
 # Install globally (choose one):
@@ -285,7 +303,13 @@ embedding(768)  -- sqlite-vss virtual table
 
 ### "Ollama not available"
 
+Ollama is required for generating embeddings (semantic search).
+
 ```bash
+# Install Ollama
+brew install ollama   # macOS
+# OR download from https://ollama.ai/download
+
 # Start Ollama
 ollama serve
 
@@ -294,6 +318,19 @@ ollama pull nomic-embed-text
 
 # Verify it's running
 curl http://127.0.0.1:11434/api/tags
+```
+
+### "yt-dlp not installed"
+
+YouTube video ingestion requires yt-dlp:
+
+```bash
+# Install yt-dlp
+brew install yt-dlp   # macOS
+pip install yt-dlp    # any platform
+
+# Verify installation
+yt-dlp --version
 ```
 
 ### "sqlite-vss extension failed to load"

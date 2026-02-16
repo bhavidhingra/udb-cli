@@ -4,7 +4,7 @@
 
 export { extractArticle } from './article.js';
 export { extractTweet } from './tweet.js';
-export { extractVideoTranscript, extractVideoId } from './video.js';
+export { extractVideoTranscript, extractVideoId, checkYtDlpAvailable, isYtDlpAvailable } from './video.js';
 export { extractConfluence } from './confluence.js';
 export { extractGoogleDocs, isGoogleDocsUrl } from './google-docs.js';
 

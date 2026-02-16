@@ -84,15 +84,20 @@ export {
 export { KBLock };
 
 // Re-export extractors
-export { extractArticle, extractTweet } from './extractors/index.js';
+export { extractArticle, extractTweet, checkYtDlpAvailable, isYtDlpAvailable } from './extractors/index.js';
 export type { ExtractedContent } from './extractors/article.js';
+
+// Import yt-dlp check for initialization
+import { checkYtDlpAvailable as checkYtDlp } from './extractors/index.js';
 
 // State
 let ollamaAvailable = false;
+let ytDlpAvailable = false;
 
 /**
  * Initialize the Knowledge Base module
  * - Checks Ollama availability
+ * - Checks yt-dlp availability
  * - Initializes database tables
  * - Cleans up stale locks
  */
@@ -103,6 +108,14 @@ export async function initKB(database: Database.Database): Promise<void> {
     logger.info('Ollama is available for embeddings');
   } else {
     logger.warn('Ollama not available - KB search will be disabled');
+  }
+
+  // Check yt-dlp availability
+  ytDlpAvailable = await checkYtDlp();
+  if (ytDlpAvailable) {
+    logger.info('yt-dlp is available for YouTube transcripts');
+  } else {
+    logger.warn('yt-dlp not installed - YouTube video ingestion will be disabled');
   }
 
   // Initialize database tables
@@ -119,6 +132,13 @@ export async function initKB(database: Database.Database): Promise<void> {
  */
 export function isKBOperational(): boolean {
   return ollamaAvailable;
+}
+
+/**
+ * Check if YouTube video ingestion is available
+ */
+export function isYouTubeAvailable(): boolean {
+  return ytDlpAvailable;
 }
 
 /**
