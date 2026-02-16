@@ -7,7 +7,7 @@ A local RAG (Retrieval-Augmented Generation) CLI that lets you save and search p
 UDB is your personal knowledge assistant. You talk to it in plain English, and it can:
 
 - **Save** notes, commands, and snippets
-- **Ingest** web articles, YouTube videos, and tweets
+- **Ingest** web articles, YouTube videos, tweets, and Confluence pages
 - **Search** your knowledge base semantically
 - **Read** local files and add them to your KB
 - **Answer** questions using only your saved knowledge
@@ -87,6 +87,15 @@ You: Save this video: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 UDB: Ingested successfully! (transcript extracted)
 ```
 
+**Ingest a Confluence page:**
+
+```
+You: Save this Confluence page: https://mycompany.atlassian.net/wiki/spaces/TEAM/pages/123456/Meeting+Notes
+UDB: Ingested successfully!
+  Source ID: kb-1234567890-conf
+  Chunks: 3
+```
+
 **Read and save a local file:**
 
 ```
@@ -146,13 +155,14 @@ UDB: Added successfully!
 
 ### Supported Content Types
 
-| Type         | Source       | Extraction Method    |
-| ------------ | ------------ | -------------------- |
-| **Articles** | Web URLs     | Mozilla Readability  |
-| **Videos**   | YouTube      | yt-dlp (transcripts) |
-| **Tweets**   | Twitter/X    | FxTwitter API        |
-| **Text**     | Direct input | As-is                |
-| **Files**    | Local paths  | Claude's Read tool   |
+| Type           | Source         | Extraction Method      |
+| -------------- | -------------- | ---------------------- |
+| **Articles**   | Web URLs       | Mozilla Readability    |
+| **Videos**     | YouTube        | yt-dlp (transcripts)   |
+| **Tweets**     | Twitter/X      | FxTwitter API          |
+| **Confluence** | Atlassian      | REST API               |
+| **Text**       | Direct input   | As-is                  |
+| **Files**      | Local paths    | Claude's Read tool     |
 
 ### Search
 
@@ -184,12 +194,24 @@ Settings are in `src/config.ts`:
 
 ### Environment Variables
 
+Create a `.env` file in the project root (automatically loaded):
+
 ```bash
+# Core settings
 UDB_DATA_DIR=~/.udb          # Data directory
 OLLAMA_URL=http://127.0.0.1:11434
 OLLAMA_MODEL=nomic-embed-text
 CLAUDE_MODEL=us.anthropic.claude-sonnet-4-20250514-v1:0
+
+# Atlassian/Confluence (optional, for ingesting Confluence pages)
+ATLASSIAN_EMAIL=your-email@example.com
+ATLASSIAN_API_TOKEN=your-api-token
 ```
+
+To get an Atlassian API token:
+1. Go to https://id.atlassian.com/manage-profile/security/api-tokens
+2. Create a new API token
+3. Add it to your `.env` file along with your Atlassian email
 
 ## Data Storage
 
