@@ -1,4 +1,4 @@
-# UDB - Personal Knowledge Base
+# UDB (YouDB) - Personal Knowledge Base
 
 A local RAG (Retrieval-Augmented Generation) CLI that lets you save and search personal knowledge using natural language.
 
@@ -164,15 +164,15 @@ UDB: Added successfully!
 
 ### Supported Content Types
 
-| Type            | Source         | Extraction Method      |
-| --------------- | -------------- | ---------------------- |
-| **Articles**    | Web URLs       | Mozilla Readability    |
-| **Videos**      | YouTube        | yt-dlp (transcripts)   |
-| **Tweets**      | Twitter/X      | FxTwitter API          |
-| **Confluence**  | Atlassian      | REST API               |
-| **Google Docs** | Google Drive   | OAuth 2.0 API          |
-| **Text**        | Direct input   | As-is                  |
-| **Files**       | Local paths    | Claude's Read tool     |
+| Type            | Source       | Extraction Method    |
+| --------------- | ------------ | -------------------- |
+| **Articles**    | Web URLs     | Mozilla Readability  |
+| **Videos**      | YouTube      | yt-dlp (transcripts) |
+| **Tweets**      | Twitter/X    | FxTwitter API        |
+| **Confluence**  | Atlassian    | REST API             |
+| **Google Docs** | Google Drive | OAuth 2.0 API        |
+| **Text**        | Direct input | As-is                |
+| **Files**       | Local paths  | Claude's Read tool   |
 
 ### Search
 
@@ -219,6 +219,7 @@ ATLASSIAN_API_TOKEN=your-api-token
 ```
 
 To get an Atlassian API token:
+
 1. Go to https://id.atlassian.com/manage-profile/security/api-tokens
 2. Create a new API token
 3. Add it to your `.env` file along with your Atlassian email
