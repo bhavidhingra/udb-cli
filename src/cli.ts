@@ -4,8 +4,14 @@
  * UDB - Personal Knowledge Base with RAG
  */
 
-// Load environment variables from .env file
-import 'dotenv/config';
+// Load environment variables from ~/.udb/.env (user config) and CWD/.env (development)
+import dotenv from 'dotenv';
+import { homedir } from 'os';
+import { join } from 'path';
+
+// Load from user config directory first, then CWD (later values don't override)
+dotenv.config({ path: join(homedir(), '.udb', '.env') });
+dotenv.config(); // Falls back to CWD/.env for development
 
 import chalk from 'chalk';
 import { getDb, closeDb } from './db.js';
