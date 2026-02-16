@@ -2,24 +2,31 @@
  * Interactive chat with RAG context using Claude Agent SDK
  */
 
-import * as readline from 'readline';
-import { execSync } from 'child_process';
-import chalk from 'chalk';
-import { query, createSdkMcpServer, tool, type SDKMessage } from '@anthropic-ai/claude-agent-sdk';
-import { z } from 'zod';
+import * as readline from "readline";
+import { execSync } from "child_process";
+import chalk from "chalk";
+import {
+  query,
+  createSdkMcpServer,
+  tool,
+  type SDKMessage,
+} from "@anthropic-ai/claude-agent-sdk";
+import { z } from "zod";
 import {
   search,
   ingestUrl,
   ingestContent,
   listKBSources,
   deleteKBSource,
-} from './kb/index.js';
-import { config } from './config.js';
+  getChunksBySourceId,
+  getSourceById,
+} from "./kb/index.js";
+import { config } from "./config.js";
 
 // Find system Claude CLI path
 function findClaudeCli(): string | undefined {
   try {
-    const path = execSync('which claude', { encoding: 'utf-8' }).trim();
+    const path = execSync("which claude", { encoding: "utf-8" }).trim();
     return path || undefined;
   } catch {
     return undefined;
@@ -27,7 +34,7 @@ function findClaudeCli(): string | undefined {
 }
 
 interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
@@ -36,17 +43,20 @@ interface ChatMessage {
  */
 function createKBMcpServer() {
   return createSdkMcpServer({
-    name: 'udb-kb',
-    version: '1.0.0',
+    name: "udb-kb",
+    version: "1.0.0",
     tools: [
       // Search KB tool
       tool(
-        'kb_search',
-        'Search the knowledge base for relevant content. Returns matching documents with similarity scores.',
+        "kb_search",
+        "Search the knowledge base for relevant content. Returns matching documents with similarity scores.",
         {
-          query: z.string().describe('The search query'),
-          limit: z.number().optional().describe('Maximum results (default: 5)'),
-          minSimilarity: z.number().optional().describe('Minimum similarity threshold 0-1 (default: 0.6)'),
+          query: z.string().describe("The search query"),
+          limit: z.number().optional().describe("Maximum results (default: 5)"),
+          minSimilarity: z
+            .number()
+            .optional()
+            .describe("Minimum similarity threshold 0-1 (default: 0.6)"),
         },
         async (args) => {
           const results = await search(args.query, {
@@ -54,25 +64,37 @@ function createKBMcpServer() {
             minSimilarity: args.minSimilarity ?? 0.4, // Lower threshold for better recall
           });
           if (results.length === 0) {
-            return { content: [{ type: 'text', text: 'No results found.' }] };
+            return { content: [{ type: "text", text: "No results found." }] };
           }
-          const formatted = results.map((r, i) => {
-            const source = r.source_title || r.source_url || 'Unknown';
-            // Show full chunk content (no truncation)
-            return `${i + 1}. [${r.source_type}] ${source} (${(r.similarity * 100).toFixed(1)}%)\n${r.content}`;
-          }).join('\n\n---\n\n');
-          return { content: [{ type: 'text', text: `Found ${results.length} result(s):\n\n${formatted}` }] };
+          const formatted = results
+            .map((r, i) => {
+              const source = r.source_title || r.source_url || "Unknown";
+              // Show full chunk content (no truncation)
+              return `${i + 1}. [${r.source_type}] ${source} (${(r.similarity * 100).toFixed(1)}%)\n${r.content}`;
+            })
+            .join("\n\n---\n\n");
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Found ${results.length} result(s):\n\n${formatted}`,
+              },
+            ],
+          };
         },
       ),
 
       // Add text content tool
       tool(
-        'kb_add',
-        'Add text content directly to the knowledge base. Use this for notes, commands, snippets, or any text the user wants to save.',
+        "kb_add",
+        "Add text content directly to the knowledge base. Use this for notes, commands, snippets, or any text the user wants to save.",
         {
-          content: z.string().describe('The text content to add'),
-          title: z.string().describe('A descriptive title for the content'),
-          tags: z.array(z.string()).optional().describe('Optional tags for categorization'),
+          content: z.string().describe("The text content to add"),
+          title: z.string().describe("A descriptive title for the content"),
+          tags: z
+            .array(z.string())
+            .optional()
+            .describe("Optional tags for categorization"),
         },
         async (args) => {
           const result = await ingestContent(args.content, {
@@ -81,24 +103,32 @@ function createKBMcpServer() {
           });
           if (result.success) {
             return {
-              content: [{
-                type: 'text',
-                text: `Added successfully!\n  Source ID: ${result.source_id}\n  Chunks: ${result.chunks_count}`,
-              }],
+              content: [
+                {
+                  type: "text",
+                  text: `Added successfully!\n  Source ID: ${result.source_id}\n  Chunks: ${result.chunks_count}`,
+                },
+              ],
             };
           }
-          return { content: [{ type: 'text', text: `Failed to add: ${result.error}` }], isError: true };
+          return {
+            content: [{ type: "text", text: `Failed to add: ${result.error}` }],
+            isError: true,
+          };
         },
       ),
 
       // Ingest URL tool
       tool(
-        'kb_ingest',
-        'Ingest content from a URL into the knowledge base. Supports web articles, YouTube videos, and tweets.',
+        "kb_ingest",
+        "Ingest content from a URL into the knowledge base. Supports web articles, YouTube videos, and tweets.",
         {
-          url: z.string().describe('The URL to ingest'),
-          title: z.string().optional().describe('Optional custom title'),
-          tags: z.array(z.string()).optional().describe('Optional tags for categorization'),
+          url: z.string().describe("The URL to ingest"),
+          title: z.string().optional().describe("Optional custom title"),
+          tags: z
+            .array(z.string())
+            .optional()
+            .describe("Optional tags for categorization"),
         },
         async (args) => {
           const result = await ingestUrl(args.url, {
@@ -107,56 +137,116 @@ function createKBMcpServer() {
           });
           if (result.success) {
             return {
-              content: [{
-                type: 'text',
-                text: `Ingested successfully!\n  Source ID: ${result.source_id}\n  Chunks: ${result.chunks_count}`,
-              }],
+              content: [
+                {
+                  type: "text",
+                  text: `Ingested successfully!\n  Source ID: ${result.source_id}\n  Chunks: ${result.chunks_count}`,
+                },
+              ],
             };
           }
           let errorMsg = `Failed to ingest: ${result.error}`;
           if (result.existingSourceId) {
             errorMsg += `\n  Already exists: ${result.existingSourceId}`;
           }
-          return { content: [{ type: 'text', text: errorMsg }], isError: true };
+          return { content: [{ type: "text", text: errorMsg }], isError: true };
         },
       ),
 
       // List sources tool
       tool(
-        'kb_list',
-        'List all sources in the knowledge base.',
+        "kb_list",
+        "List all sources in the knowledge base.",
         {
-          limit: z.number().optional().describe('Maximum results (default: 20)'),
+          limit: z
+            .number()
+            .optional()
+            .describe("Maximum results (default: 20)"),
         },
         async (args) => {
           const sources = listKBSources(args.limit ?? 20);
           if (sources.length === 0) {
-            return { content: [{ type: 'text', text: 'Knowledge base is empty.' }] };
+            return {
+              content: [{ type: "text", text: "Knowledge base is empty." }],
+            };
           }
-          const formatted = sources.map((s) => {
-            const title = s.title || s.url || 'Untitled';
-            const date = new Date(s.created_at).toLocaleDateString();
-            let entry = `• ${s.id}\n  ${title}\n  [${s.source_type}] ${date}`;
-            if (s.url) entry += `\n  ${s.url}`;
-            return entry;
-          }).join('\n\n');
-          return { content: [{ type: 'text', text: `Sources (${sources.length}):\n\n${formatted}` }] };
+          const formatted = sources
+            .map((s) => {
+              const title = s.title || s.url || "Untitled";
+              const date = new Date(s.created_at).toLocaleDateString();
+              let entry = `• ${s.id}\n  ${title}\n  [${s.source_type}] ${date}`;
+              if (s.url) entry += `\n  ${s.url}`;
+              return entry;
+            })
+            .join("\n\n");
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Sources (${sources.length}):\n\n${formatted}`,
+              },
+            ],
+          };
         },
       ),
 
       // Delete source tool
       tool(
-        'kb_delete',
-        'Delete a source from the knowledge base by its ID.',
+        "kb_delete",
+        "Delete a source from the knowledge base by its ID.",
         {
-          id: z.string().describe('The source ID to delete'),
+          id: z.string().describe("The source ID to delete"),
         },
         async (args) => {
           const result = await deleteKBSource(args.id);
           if (result.success) {
-            return { content: [{ type: 'text', text: `Deleted source: ${args.id}` }] };
+            return {
+              content: [{ type: "text", text: `Deleted source: ${args.id}` }],
+            };
           }
-          return { content: [{ type: 'text', text: `Failed to delete: ${result.error}` }], isError: true };
+          return {
+            content: [
+              { type: "text", text: `Failed to delete: ${result.error}` },
+            ],
+            isError: true,
+          };
+        },
+      ),
+
+      // Get all chunks from a source tool
+      tool(
+        "kb_get_source_chunks",
+        "Get ALL chunks from a specific source by its ID. Use this when you need to read through all content from a particular source (e.g., to find specific details like links, dates, or names that similarity search might miss).",
+        {
+          source_id: z.string().describe("The source ID to get chunks from (use kb_list to find source IDs)"),
+        },
+        async (args) => {
+          const source = getSourceById(args.source_id);
+          if (!source) {
+            return {
+              content: [{ type: "text", text: `Source not found: ${args.source_id}` }],
+              isError: true,
+            };
+          }
+
+          const chunks = getChunksBySourceId(args.source_id);
+          if (chunks.length === 0) {
+            return {
+              content: [{ type: "text", text: `No chunks found for source: ${source.title || source.url || args.source_id}` }],
+            };
+          }
+
+          const formatted = chunks
+            .map((chunk, index) => {
+              return `--- Chunk ${index + 1}/${chunks.length} ---\n${chunk.content}`;
+            })
+            .join("\n\n");
+
+          const header = `Source: ${source.title || source.url || args.source_id}\nType: ${source.source_type}\nTotal chunks: ${chunks.length}\n\n`;
+
+          return {
+            content: [{ type: "text", text: header + formatted }],
+          };
         },
       ),
     ],
@@ -167,7 +257,7 @@ function createKBMcpServer() {
  * Build system prompt for UDB chat
  */
 function buildSystemPrompt(): string {
-  return `You are UDB, a personal knowledge base retrieval tool. Your job is to find and return information from the user's knowledge base.
+  return `You are UDB, a personal knowledge base assistant. Your job is to help users by answering questions based on their knowledge base.
 
 You have access to these KB tools:
 - kb_search: Search the knowledge base for relevant content
@@ -175,33 +265,45 @@ You have access to these KB tools:
 - kb_ingest: Ingest content from URLs (articles, YouTube videos, tweets)
 - kb_list: List all sources in the KB
 - kb_delete: Delete a source by ID
+- kb_get_source_chunks: Get ALL chunks from a specific source (use when you need complete content from a source)
 
-IMPORTANT RULES:
-1. When returning search results, output the KB content VERBATIM - do not add commentary, analysis, summaries, or additional information
-2. Do not rephrase or reformat the content - return it exactly as stored
-3. Only add your own words if: no results found, confirming an action (add/delete), or the user explicitly asks for your opinion
-4. If the user asks a question, search first and return the raw results. Do not interpret or expand on them.
+IMPORTANT RULES FOR ANSWERING QUESTIONS:
+1. When the user asks a question, ALWAYS search the KB first using kb_search
+2. Use the search results as your ONLY source of truth - analyze and understand the content
+3. Answer the user's specific question based on what you found in the KB
+4. If the KB contains relevant information, synthesize it into a clear, direct answer
+5. NEVER make up information that isn't in the KB - only use what you find
+6. If no relevant results are found, clearly say "I couldn't find information about that in your knowledge base"
+7. When appropriate, cite which source the information came from.
+8. CRITICAL: If kb_search finds a relevant source but the specific answer to the user's question is NOT in the returned chunks, you MUST use kb_get_source_chunks to read ALL chunks from that source. The answer may be in a different chunk that wasn't returned by similarity search.
 
 When the user wants to save information:
 - Use kb_add for text or kb_ingest for URLs
-- Confirm the action briefly without adding extra commentary`;
+- Confirm the action briefly
+
+When the user asks to see raw KB content or list sources:
+- Use kb_list to show sources
+- You can show the raw search results if the user explicitly asks for them`;
 }
 
 /**
  * Extract text content from SDK message
  */
 function extractTextFromMessage(message: SDKMessage): string {
-  if (message.type === 'assistant') {
+  if (message.type === "assistant") {
     // SDKAssistantMessage - contains BetaMessage with content blocks
     const content = message.message.content;
     if (Array.isArray(content)) {
       return content
-        .filter((block): block is { type: 'text'; text: string } => block.type === 'text')
+        .filter(
+          (block): block is { type: "text"; text: string } =>
+            block.type === "text",
+        )
         .map((block) => block.text)
-        .join('');
+        .join("");
     }
   }
-  return '';
+  return "";
 }
 
 /**
@@ -215,13 +317,13 @@ async function streamClaudeResponse(
   const systemPrompt = buildSystemPrompt();
 
   // Build conversation history as a formatted prompt
-  let fullPrompt = '';
+  let fullPrompt = "";
   for (const msg of history) {
-    fullPrompt += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}\n\n`;
+    fullPrompt += `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}\n\n`;
   }
   fullPrompt += `User: ${question}`;
 
-  let response = '';
+  let response = "";
 
   try {
     // Use Claude Agent SDK's query function
@@ -232,18 +334,19 @@ async function streamClaudeResponse(
         model: config.CLAUDE_MODEL,
         systemPrompt,
         mcpServers: {
-          'udb-kb': mcpServer,
+          "udb-kb": mcpServer,
         },
         allowedTools: [
           // KB tools
-          'mcp__udb-kb__kb_search',
-          'mcp__udb-kb__kb_add',
-          'mcp__udb-kb__kb_ingest',
-          'mcp__udb-kb__kb_list',
-          'mcp__udb-kb__kb_delete',
+          "mcp__udb-kb__kb_search",
+          "mcp__udb-kb__kb_add",
+          "mcp__udb-kb__kb_ingest",
+          "mcp__udb-kb__kb_list",
+          "mcp__udb-kb__kb_delete",
+          "mcp__udb-kb__kb_get_source_chunks",
           // File tools
-          'Read',
-          'Glob',
+          "Read",
+          "Glob",
         ],
         maxTurns: 10, // Allow multiple turns for tool use
         includePartialMessages: true, // Enable streaming output
@@ -254,17 +357,17 @@ async function streamClaudeResponse(
 
     // Process messages
     for await (const message of q) {
-      if (message.type === 'stream_event') {
+      if (message.type === "stream_event") {
         // Handle streaming partial messages
         const event = message.event;
-        if (event.type === 'content_block_delta' && 'delta' in event) {
+        if (event.type === "content_block_delta" && "delta" in event) {
           const delta = event.delta;
-          if ('text' in delta) {
+          if ("text" in delta) {
             process.stdout.write(delta.text);
             response += delta.text;
           }
         }
-      } else if (message.type === 'assistant') {
+      } else if (message.type === "assistant") {
         // Final assistant message (if streaming not available)
         const text = extractTextFromMessage(message);
         if (text && !response) {
@@ -291,10 +394,14 @@ export async function startChat(): Promise<void> {
     output: process.stdout,
   });
 
-  console.log(chalk.blue('UDB Chat - Your personal knowledge base assistant'));
+  console.log(chalk.blue("UDB Chat - Your personal knowledge base assistant"));
   console.log(chalk.gray('Commands: "exit" to quit, "clear" to reset history'));
-  console.log(chalk.gray('Multi-line: end line with \\ to continue'));
-  console.log(chalk.gray('I can search, add, ingest URLs, list, and delete from your KB.'));
+  console.log(chalk.gray("Multi-line: end line with \\ to continue"));
+  console.log(
+    chalk.gray(
+      "I can search, add, ingest URLs, list, and delete from your KB.",
+    ),
+  );
   console.log();
 
   // Create MCP server with KB tools
@@ -310,14 +417,14 @@ export async function startChat(): Promise<void> {
       let lines: string[] = [];
 
       const processLine = (line: string) => {
-        if (line.endsWith('\\')) {
+        if (line.endsWith("\\")) {
           // Continue to next line
           lines.push(line.slice(0, -1)); // Remove trailing backslash
-          rl.question(chalk.gray('... '), processLine);
+          rl.question(chalk.gray("... "), processLine);
         } else {
           // Final line
           lines.push(line);
-          resolve(lines.join('\n'));
+          resolve(lines.join("\n"));
         }
       };
 
@@ -328,11 +435,11 @@ export async function startChat(): Promise<void> {
   const promptUser = (): void => {
     if (isClosed) return;
 
-    rl.question(chalk.green('You: '), async (input) => {
+    rl.question(chalk.green("You: "), async (input) => {
       if (isClosed) return;
 
       // Handle multi-line input with backslash continuation
-      const fullInput = input.endsWith('\\')
+      const fullInput = input.endsWith("\\")
         ? await collectInput(input)
         : input;
 
@@ -344,16 +451,19 @@ export async function startChat(): Promise<void> {
       }
 
       // Handle special commands
-      if (question.toLowerCase() === 'exit' || question.toLowerCase() === 'quit') {
-        console.log(chalk.blue('\nGoodbye!'));
+      if (
+        question.toLowerCase() === "exit" ||
+        question.toLowerCase() === "quit"
+      ) {
+        console.log(chalk.blue("\nGoodbye!"));
         isClosed = true;
         rl.close();
         return;
       }
 
-      if (question.toLowerCase() === 'clear') {
+      if (question.toLowerCase() === "clear") {
         history.length = 0;
-        console.log(chalk.yellow('Conversation history cleared.\n'));
+        console.log(chalk.yellow("Conversation history cleared.\n"));
         promptUser();
         return;
       }
@@ -362,15 +472,19 @@ export async function startChat(): Promise<void> {
       pendingOperation = (async () => {
         try {
           // Stream Claude's response with KB tools
-          process.stdout.write(chalk.cyan('UDB: '));
-          const response = await streamClaudeResponse(question, history, mcpServer);
-          console.log('\n');
+          process.stdout.write(chalk.cyan("UDB: "));
+          const response = await streamClaudeResponse(
+            question,
+            history,
+            mcpServer,
+          );
+          console.log("\n");
 
           // Maintain conversation history
-          history.push({ role: 'user', content: question });
-          history.push({ role: 'assistant', content: response });
+          history.push({ role: "user", content: question });
+          history.push({ role: "assistant", content: response });
         } catch (err) {
-          console.error(chalk.red('\nError processing question:'), err);
+          console.error(chalk.red("\nError processing question:"), err);
         }
       })();
 
@@ -385,7 +499,7 @@ export async function startChat(): Promise<void> {
   };
 
   // Handle stdin close (e.g., piped input ends)
-  rl.on('close', () => {
+  rl.on("close", () => {
     isClosed = true;
   });
 
@@ -407,6 +521,6 @@ export async function startChat(): Promise<void> {
       }
     };
 
-    rl.on('close', checkAndResolve);
+    rl.on("close", checkAndResolve);
   });
 }
