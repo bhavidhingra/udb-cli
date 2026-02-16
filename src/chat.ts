@@ -356,15 +356,22 @@ async function streamClaudeResponse(
     });
 
     // Process messages
+    let hasOutputText = false;
     for await (const message of q) {
       if (message.type === "stream_event") {
         // Handle streaming partial messages
         const event = message.event;
+        // Add newline before new content blocks (after tool use) for readability
+        if (event.type === "content_block_start" && hasOutputText) {
+          process.stdout.write("\n");
+          response += "\n";
+        }
         if (event.type === "content_block_delta" && "delta" in event) {
           const delta = event.delta;
           if ("text" in delta) {
             process.stdout.write(delta.text);
             response += delta.text;
+            hasOutputText = true;
           }
         }
       } else if (message.type === "assistant") {
