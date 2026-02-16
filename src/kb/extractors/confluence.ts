@@ -3,7 +3,6 @@
  */
 
 import { JSDOM } from 'jsdom';
-import { config } from '../../config.js';
 import { logger } from '../../logger.js';
 import type { ExtractedContent } from './article.js';
 
@@ -66,7 +65,8 @@ function htmlToText(html: string): string {
  * Extract content from a Confluence page
  */
 export async function extractConfluence(url: string): Promise<ExtractedContent | null> {
-  const email = config.ATLASSIAN_EMAIL;
+  // Read directly from process.env at runtime (config values are cached at import time, before dotenv runs)
+  const email = process.env.ATLASSIAN_EMAIL;
   const token = process.env.ATLASSIAN_API_TOKEN;
 
   if (!email || !token) {
