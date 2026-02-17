@@ -2,6 +2,28 @@
 
 A local RAG (Retrieval-Augmented Generation) CLI that lets you save and search personal knowledge using natural language.
 
+## Table of Contents
+
+- [What is UDB?](#what-is-udb)
+- [Quick Start](#quick-start)
+  - [Option 1: Automated Install (Recommended)](#option-1-automated-install-recommended)
+  - [Option 2: npm (if you already have Ollama)](#option-2-npm-if-you-already-have-ollama)
+- [Usage](#usage)
+  - [Examples](#examples)
+- [How It Works](#how-it-works)
+  - [Supported Content Types](#supported-content-types)
+  - [Search](#search)
+  - [System Prompt](#system-prompt)
+- [Configuration](#configuration)
+  - [Environment Variables](#environment-variables)
+  - [Google Docs Setup](#google-docs-setup)
+- [Data Storage](#data-storage)
+  - [Database Schema](#database-schema)
+- [Requirements](#requirements)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+- [License](#license)
+
 ## What is UDB?
 
 UDB is your personal knowledge assistant. You talk to it in plain English, and it can:
