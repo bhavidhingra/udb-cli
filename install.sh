@@ -1,20 +1,21 @@
 #!/bin/bash
 
 # UDB Installation Script
-# Checks and installs dependencies, then builds the project
+# Installs dependencies and udb-cli from npm
 
 set -e
 
-# Colors for output
+# Colors for output (chosen for both dark and light terminals)
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
 DIM='\033[2m'
 NC='\033[0m' # No Color
 
-echo "=========================================="
-echo "  UDB - Personal Knowledge Base Installer"
-echo "=========================================="
+echo "===================================================="
+echo "  UDB (YouDB) - Personal Knowledge Base Installer"
+echo "===================================================="
 echo ""
 
 # Detect OS
@@ -49,7 +50,7 @@ echo "Checking Ollama..."
 if command -v ollama &> /dev/null; then
     echo -e "${GREEN}✓${NC} Ollama installed"
 else
-    echo -e "${YELLOW}!${NC} Ollama not found (required for embeddings)"
+    echo -e "${CYAN}${BOLD}!${NC} Ollama not found (required for embeddings)"
 
     if [[ "$OS" == "macos" ]] && command -v brew &> /dev/null; then
         read -p "  Install Ollama via Homebrew? [Y/n] " -n 1 -r
@@ -71,7 +72,7 @@ echo "Checking yt-dlp (optional, for YouTube videos)..."
 if command -v yt-dlp &> /dev/null; then
     echo -e "${GREEN}✓${NC} yt-dlp installed"
 else
-    echo -e "${YELLOW}!${NC} yt-dlp not found (optional)"
+    echo -e "${CYAN}${BOLD}!${NC} yt-dlp not found (optional)"
 
     if [[ "$OS" == "macos" ]] && command -v brew &> /dev/null; then
         read -p "  Install yt-dlp via Homebrew? [Y/n] " -n 1 -r
@@ -96,28 +97,29 @@ else
     fi
 fi
 
-# Install npm dependencies
+# Install udb-cli from npm
 echo ""
-echo "Installing npm dependencies..."
-npm install
-echo -e "${GREEN}✓${NC} npm dependencies installed"
-
-# Build project
-echo ""
-echo "Building project..."
-npm run build
-echo -e "${GREEN}✓${NC} Project built"
+echo "Installing udb-cli..."
+npm install -g udb-cli
+echo -e "${GREEN}✓${NC} udb-cli installed"
 
 # Start Ollama and pull model (if available)
 echo ""
 if command -v ollama &> /dev/null; then
-    echo "Setting up Ollama embedding model..."
+    echo "Setting up Ollama..."
 
-    # Check if Ollama is running
-    if ! curl -s http://127.0.0.1:11434/api/tags &> /dev/null; then
-        echo -e "${DIM}  Starting Ollama server...${NC}"
-        ollama serve &> /dev/null &
+    # Enable Ollama to start on boot (macOS with Homebrew)
+    if [[ "$OS" == "macos" ]] && command -v brew &> /dev/null; then
+        echo -e "${DIM}  Enabling Ollama to start on boot...${NC}"
+        brew services start ollama &> /dev/null
         sleep 2
+    else
+        # Fallback: start manually if not using brew services
+        if ! curl -s http://127.0.0.1:11434/api/tags &> /dev/null; then
+            echo -e "${DIM}  Starting Ollama server...${NC}"
+            ollama serve &> /dev/null &
+            sleep 2
+        fi
     fi
 
     echo "  Pulling nomic-embed-text model (this may take a minute)..."
@@ -131,15 +133,21 @@ echo "=========================================="
 echo -e "${GREEN}Installation complete!${NC}"
 echo "=========================================="
 echo ""
-echo "To use UDB, either:"
+echo "Run 'udb' to start using your personal knowledge base."
 echo ""
-echo "  1. Link globally (may need sudo):"
-echo "     npm link"
-echo "     udb"
+
+# Optional integrations setup
+echo -e "${CYAN}${BOLD}Optional Integrations:${NC}"
 echo ""
-echo "  2. Or add an alias to your shell config:"
-echo "     alias udb=\"node $(pwd)/dist/cli.js\""
+echo -e "  ${CYAN}${BOLD}Confluence${NC} - To ingest Confluence pages:"
+echo "    1. Get an API token: https://id.atlassian.com/manage-profile/security/api-tokens"
+echo "    2. Create ~/.udb/.env with:"
+echo "       ATLASSIAN_EMAIL=your-email@example.com"
+echo "       ATLASSIAN_API_TOKEN=your-token"
 echo ""
-echo "Make sure Ollama is running before using UDB:"
-echo "  ollama serve"
+echo -e "  ${CYAN}${BOLD}Google Docs${NC} - To ingest Google Docs:"
+echo "    1. Go to https://console.cloud.google.com/"
+echo "    2. Create a project and enable Google Docs API"
+echo "    3. Create OAuth credentials (Desktop app)"
+echo "    4. Download and save as ~/.udb/credentials.json"
 echo ""

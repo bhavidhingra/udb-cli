@@ -16,42 +16,28 @@ All data stays local on your machine. No cloud storage.
 
 ## Quick Start
 
-### Option 1: Automated Install
+### Option 1: Automated Install (Recommended)
 
 ```bash
-./install.sh
+curl -fsSL https://raw.githubusercontent.com/bhavidhingra/udb-cli/main/install.sh | bash
 ```
 
-This script will check/install dependencies (Ollama, yt-dlp), build the project, and set up the embedding model.
+This script checks/installs dependencies (Ollama, yt-dlp), installs udb-cli from npm, and sets up the embedding model.
 
-### Option 2: Manual Install
+### Option 2: npm (if you already have Ollama)
 
 ```bash
-# Add to your shell config (~/.zshrc or ~/.bashrc)
-export AWS_PROFILE=dev
+npm install -g udb-cli
+```
 
-# Install Ollama (required for embeddings)
-brew install ollama   # macOS
-# OR download from https://ollama.ai/download
+**Prerequisites:**
+- [Ollama](https://ollama.ai/download) running with `nomic-embed-text` model
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (optional, for YouTube videos)
 
-# Start Ollama and pull embedding model
+```bash
+# Start Ollama and pull the embedding model
 ollama serve
 ollama pull nomic-embed-text
-
-# Optional: Install yt-dlp for YouTube video ingestion
-brew install yt-dlp   # macOS
-# OR: pip install yt-dlp  # any platform
-
-# Install npm dependencies
-npm install
-
-# Build the project
-npm run build
-
-# Install globally (choose one):
-npm link                    # Option 1: npm link (may need sudo)
-# OR add to your shell config:
-alias udb="node /path/to/udb-cli/dist/cli.js"  # Option 2: alias
 ```
 
 ## Usage

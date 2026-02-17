@@ -13,14 +13,28 @@
   ],
   "author": "Bhavi Dhingra",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bhavidhingra/udb-cli.git"
+  },
+  "homepage": "https://github.com/bhavidhingra/udb-cli#readme",
+  "bugs": {
+    "url": "https://github.com/bhavidhingra/udb-cli/issues"
+  },
   "main": "dist/cli.js",
   "bin": {
     "udb": "./dist/cli.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc && chmod +x dist/cli.js",
     "dev": "tsc --watch",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "prepublishOnly": "npm run build"
   },
   "type": "module",
   "engines": {

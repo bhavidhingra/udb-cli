@@ -479,7 +479,7 @@ export async function startChat(): Promise<void> {
   const promptUser = (): void => {
     if (isClosed) return;
 
-    rl.question(chalk.green.bold("You: "), async (input) => {
+    rl.question(chalk.blue.bold("You: "), async (input) => {
       if (isClosed) return;
 
       // Handle multi-line input with backslash continuation
@@ -516,7 +516,7 @@ export async function startChat(): Promise<void> {
       pendingOperation = (async () => {
         try {
           // Stream Claude's response with KB tools
-          process.stdout.write(chalk.cyan.bold("UDB: "));
+          process.stdout.write(chalk.magenta.bold("UDB: "));
           const response = await streamClaudeResponse(
             question,
             history,
