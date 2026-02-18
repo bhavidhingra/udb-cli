@@ -7,6 +7,7 @@ export { extractTweet } from './tweet.js';
 export { extractVideoTranscript, extractVideoId, checkYtDlpAvailable, isYtDlpAvailable } from './video.js';
 export { extractConfluence } from './confluence.js';
 export { extractGoogleDocs, isGoogleDocsUrl } from './google-docs.js';
+export { extractFile, isFilePath, resolvePath } from './file.js';
 
 export type { ExtractedContent } from './article.js';
 
@@ -20,6 +21,7 @@ import { extractTweet } from './tweet.js';
 import { extractVideoTranscript } from './video.js';
 import { extractConfluence } from './confluence.js';
 import { extractGoogleDocs } from './google-docs.js';
+import { extractFile } from './file.js';
 
 const EXTRACTORS: Record<
   SourceType,
@@ -32,6 +34,7 @@ const EXTRACTORS: Record<
   tweet: extractTweet,
   confluence: extractConfluence, // Atlassian Confluence via REST API
   google_docs: extractGoogleDocs, // Google Docs via OAuth API
+  file: extractFile, // Local file extraction
   other: extractArticle,
 };
 

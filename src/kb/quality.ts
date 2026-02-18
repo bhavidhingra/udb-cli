@@ -34,6 +34,7 @@ const MIN_LENGTHS: Record<SourceType, number> = {
   tweet: 20,
   confluence: 20, // Confluence pages can be short notes
   google_docs: 20, // Google Docs can be short notes
+  file: 20, // Local files can be short
   other: 100,
 };
 
@@ -59,17 +60,21 @@ export function validateContent(
   }
 
   // Error page detection (need 2+ signals)
-  const lower = content.toLowerCase();
-  const errorSignals = ERROR_PATTERNS.filter((p) => lower.includes(p));
-  if (errorSignals.length >= 2) {
-    return {
-      valid: false,
-      reason: `Detected error page: ${errorSignals.slice(0, 2).join(', ')}`,
-    };
+  // Skip for local files and direct text - they are trusted content
+  if (type !== 'file' && type !== 'text') {
+    const lower = content.toLowerCase();
+    const errorSignals = ERROR_PATTERNS.filter((p) => lower.includes(p));
+    if (errorSignals.length >= 2) {
+      return {
+        valid: false,
+        reason: `Detected error page: ${errorSignals.slice(0, 2).join(', ')}`,
+      };
+    }
   }
 
   // For non-tweets, check content quality (prose vs navigation)
-  if (type !== 'tweet' && type !== 'text') {
+  // Skip for local files - markdown files often have short lines
+  if (type !== 'tweet' && type !== 'text' && type !== 'file') {
     const lines = content.split('\n').filter((l) => l.trim().length > 0);
     if (lines.length > 10) {
       const longLines = lines.filter((l) => l.length > 80);

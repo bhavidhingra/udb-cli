@@ -29,9 +29,8 @@ A local RAG (Retrieval-Augmented Generation) CLI that lets you save and search p
 UDB is your personal knowledge assistant. You talk to it in plain English, and it can:
 
 - **Save** notes, commands, and snippets
-- **Ingest** web articles, YouTube videos, tweets, Confluence pages, and Google Docs
+- **Ingest** web articles, YouTube videos, tweets, Confluence pages, Google Docs, and local files
 - **Search** your knowledge base semantically
-- **Read** local files and add them to your KB
 - **Answer** questions using only your saved knowledge
 
 All data stays local on your machine. No cloud storage.
@@ -133,11 +132,18 @@ UDB: Ingested successfully!
   Chunks: 4
 ```
 
-**Read and save a local file:**
+**Ingest a local file:**
 
 ```
-You: Read ~/notes/meeting.md and add it to my KB with title "Q1 Planning Meeting"
-UDB: Added successfully!
+You: Ingest ~/notes/meeting.md
+UDB: Ingested successfully!
+  Source ID: kb-1234567890-file
+  Chunks: 3
+
+You: Add /path/to/README.md to my KB
+UDB: Ingested successfully!
+  Source ID: kb-1234567891-file
+  Chunks: 5
 ```
 
 **List all sources:**
@@ -192,15 +198,15 @@ UDB: Added successfully!
 
 ### Supported Content Types
 
-| Type            | Source       | Extraction Method    |
-| --------------- | ------------ | -------------------- |
-| **Articles**    | Web URLs     | Mozilla Readability  |
-| **Videos**      | YouTube      | yt-dlp (transcripts) |
-| **Tweets**      | Twitter/X    | FxTwitter API        |
-| **Confluence**  | Atlassian    | REST API             |
-| **Google Docs** | Google Drive | OAuth 2.0 API        |
-| **Text**        | Direct input | As-is                |
-| **Files**       | Local paths  | Claude's Read tool   |
+| Type            | Source       | Extraction Method       |
+| --------------- | ------------ | ----------------------- |
+| **Articles**    | Web URLs     | Mozilla Readability     |
+| **Videos**      | YouTube      | yt-dlp (transcripts)    |
+| **Tweets**      | Twitter/X    | FxTwitter API           |
+| **Confluence**  | Atlassian    | REST API                |
+| **Google Docs** | Google Drive | OAuth 2.0 API           |
+| **Text**        | Direct input | As-is                   |
+| **Local Files** | File paths   | Direct fs read (.md, .txt, etc.) |
 
 ### Search
 
@@ -221,7 +227,7 @@ You are UDB, a personal knowledge base assistant. Your job is to help users by a
 You have access to these KB tools:
 - kb_search: Search the knowledge base for relevant content
 - kb_add: Add text content (notes, commands, snippets) to the KB
-- kb_ingest: Ingest content from URLs (articles, YouTube videos, tweets)
+- kb_ingest: Ingest content from URLs or local files (articles, YouTube videos, tweets, .md, .txt files)
 - kb_list: List all sources in the KB
 - kb_delete: Delete a source by ID
 - kb_get_source_chunks: Get ALL chunks from a specific source by its ID
@@ -242,7 +248,7 @@ IMPORTANT RULES:
 - Cite the source briefly when relevant
 
 When the user wants to save information:
-- Use kb_add for text or kb_ingest for URLs
+- Use kb_add for text or kb_ingest for URLs and local file paths
 - Confirm the action briefly
 
 When the user asks to see raw KB content or list sources:

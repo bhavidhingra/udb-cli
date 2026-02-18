@@ -126,12 +126,12 @@ function createKBMcpServer() {
         },
       ),
 
-      // Ingest URL tool
+      // Ingest URL/file tool
       tool(
         "kb_ingest",
-        "Ingest content from a URL into the knowledge base. Supports web articles, YouTube videos, and tweets.",
+        "Ingest content from a URL or local file path into the knowledge base. Supports web articles, YouTube videos, tweets, and local files (.md, .txt, etc.).",
         {
-          url: z.string().describe("The URL to ingest"),
+          url: z.string().describe("The URL or local file path to ingest (e.g., https://example.com or /path/to/file.md or ~/notes.txt)"),
           title: z.string().optional().describe("Optional custom title"),
           tags: z
             .array(z.string())
@@ -270,7 +270,7 @@ function buildSystemPrompt(): string {
 You have access to these KB tools:
 - kb_search: Search the knowledge base for relevant content
 - kb_add: Add text content (notes, commands, snippets) to the KB
-- kb_ingest: Ingest content from URLs (articles, YouTube videos, tweets)
+- kb_ingest: Ingest content from URLs or local files (articles, YouTube videos, tweets, .md, .txt files)
 - kb_list: List all sources in the KB
 - kb_delete: Delete a source by ID
 - kb_get_source_chunks: Get ALL chunks from a specific source by its ID
@@ -291,7 +291,7 @@ IMPORTANT RULES:
 - Cite the source briefly when relevant
 
 When the user wants to save information:
-- Use kb_add for text or kb_ingest for URLs
+- Use kb_add for text or kb_ingest for URLs and local file paths
 - Confirm the action briefly
 
 When the user asks to see raw KB content or list sources:

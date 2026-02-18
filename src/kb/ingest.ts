@@ -8,7 +8,7 @@ import type { ExtractedContent } from './extractors/article.js';
 
 // Re-export types for convenience
 export type { IngestResult } from './types.js';
-import { extractContent } from './extractors/index.js';
+import { extractContent, isFilePath, resolvePath } from './extractors/index.js';
 import { normalizeUrl, generateContentHash, cleanContent } from './dedupe.js';
 import { validateContent, MAX_CONTENT_LENGTH } from './quality.js';
 import { chunkText } from './chunking.js';
@@ -61,10 +61,13 @@ async function ingestUrlInternal(
   const release = KBLock.acquire('ingest');
 
   try {
-    // Normalize URL
-    const normalizedUrl = normalizeUrl(url);
+    // Detect source type early for path handling
+    const sourceType = explicitType || detectSourceType(url);
 
-    // Check for duplicate by URL
+    // For file paths, resolve to absolute path; for URLs, normalize
+    const normalizedUrl = sourceType === 'file' ? resolvePath(url) : normalizeUrl(url);
+
+    // Check for duplicate by URL/path
     const existingByUrl = getSourceByUrl(normalizedUrl);
     if (existingByUrl) {
       if (forceUpdate) {
@@ -74,9 +77,6 @@ async function ingestUrlInternal(
         return { success: false, reason: 'duplicate_url', error: 'URL already ingested', existingSourceId: existingByUrl.id };
       }
     }
-
-    // Detect source type
-    const sourceType = explicitType || detectSourceType(url);
 
     // Extract content
     const extracted = await extractContent(url, sourceType);
@@ -295,6 +295,11 @@ export function listKBSources(limit = 50): KBSource[] {
  * Detect source type from URL
  */
 export function detectSourceType(url: string): SourceType {
+  // Check for local file path first
+  if (isFilePath(url)) {
+    return 'file';
+  }
+
   // Twitter/X
   if (
     /^(?:https?:\/\/)?(?:www\.)?(?:twitter|x)\.com\/[\w]+\/status\/[\d]+/i.test(
