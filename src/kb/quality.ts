@@ -72,24 +72,6 @@ export function validateContent(
     }
   }
 
-  // For non-tweets, check content quality (prose vs navigation)
-  // Skip for local files - markdown files often have short lines
-  if (type !== 'tweet' && type !== 'text' && type !== 'file') {
-    const lines = content.split('\n').filter((l) => l.trim().length > 0);
-    if (lines.length > 10) {
-      const longLines = lines.filter((l) => l.length > 80);
-      const ratio = longLines.length / lines.length;
-
-      // If most lines are short, likely navigation/menu content
-      if (ratio < 0.15) {
-        return {
-          valid: false,
-          reason: 'Low quality content (mostly short lines, likely navigation)',
-        };
-      }
-    }
-  }
-
   // Check for truncation
   const truncated = content.length > MAX_CONTENT_LENGTH;
 
