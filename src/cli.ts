@@ -6,8 +6,12 @@
 
 // Load environment variables from ~/.udb/.env (user config) and CWD/.env (development)
 import dotenv from 'dotenv';
+import { createRequire } from 'module';
 import { homedir } from 'os';
 import { join } from 'path';
+
+const require = createRequire(import.meta.url);
+const pkg = require('../package.json');
 
 // Load from user config directory first, then CWD (later values don't override)
 dotenv.config({ path: join(homedir(), '.udb', '.env') });
@@ -22,7 +26,7 @@ async function main(): Promise<void> {
   // Handle --version and --help
   const args = process.argv.slice(2);
   if (args.includes('--version') || args.includes('-v')) {
-    console.log('udb 0.1.0');
+    console.log(`udb ${pkg.version}`);
     return;
   }
   if (args.includes('--help') || args.includes('-h')) {
