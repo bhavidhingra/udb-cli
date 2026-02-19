@@ -1,6 +1,6 @@
 {
   "name": "udb-cli",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Personal knowledge base with RAG-powered chat. Save notes, ingest URLs, and search with natural language.",
   "keywords": [
     "rag",
