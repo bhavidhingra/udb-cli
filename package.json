@@ -1,6 +1,6 @@
 {
   "name": "udb-cli",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Personal knowledge base with RAG-powered chat. Save notes, ingest URLs, and search with natural language.",
   "keywords": [
     "rag",
@@ -38,7 +38,7 @@
   },
   "type": "module",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.41",
