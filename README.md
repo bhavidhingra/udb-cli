@@ -219,10 +219,15 @@ UDB uses semantic search, not keyword matching:
 
 ### System Prompt
 
-UDB uses the following system prompt to guide Claude:
+UDB uses a dynamic system prompt that includes current context (date, time, timezone) so it can answer time-related questions. The prompt guides Claude:
 
 ```
 You are UDB, a personal knowledge base assistant. Your job is to help users by answering questions based on their knowledge base.
+
+CURRENT CONTEXT:
+- Date: Wednesday, February 19, 2026
+- Time: 1:30:00 PM
+- Timezone: Asia/Kolkata
 
 You have access to these KB tools:
 - kb_search: Search the knowledge base for relevant content

@@ -265,8 +265,16 @@ function createKBMcpServer() {
  * Build system prompt for UDB chat
  */
 function buildSystemPrompt(): string {
+  const now = new Date();
+  const facts = `CURRENT CONTEXT:
+- Date: ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+- Time: ${now.toLocaleTimeString()}
+- Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
+`;
+
   return `You are UDB, a personal knowledge base assistant. Your job is to help users by answering questions based on their knowledge base.
 
+${facts}
 You have access to these KB tools:
 - kb_search: Search the knowledge base for relevant content
 - kb_add: Add text content (notes, commands, snippets) to the KB
