@@ -22,8 +22,6 @@ export const config = {
   // Lock directory for concurrent access
   KB_LOCK_DIR: join(process.env.UDB_DATA_DIR || join(homedir(), '.udb'), 'locks'),
 
-  // Claude model (Bedrock inference profile)
-  CLAUDE_MODEL: process.env.CLAUDE_MODEL || 'us.anthropic.claude-sonnet-4-20250514-v1:0',
 };
 
 export function getDbPath(): string {

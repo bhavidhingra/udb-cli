@@ -22,7 +22,7 @@ import {
   getChunksBySourceId,
   getSourceById,
 } from "./kb/index.js";
-import { config } from "./config.js";
+
 
 /**
  * Render markdown text for terminal display
@@ -352,7 +352,7 @@ async function streamClaudeResponse(
     const q = query({
       prompt: fullPrompt,
       options: {
-        model: config.CLAUDE_MODEL,
+
         systemPrompt,
         mcpServers: {
           "udb-kb": mcpServer,
