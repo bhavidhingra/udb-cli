@@ -12,6 +12,9 @@ export const config = {
   OLLAMA_URL: process.env.OLLAMA_URL || 'http://127.0.0.1:11434',
   OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'nomic-embed-text',
 
+  // Claude model (optional, defaults to CLI default)
+  CLAUDE_MODEL: process.env.UDB_MODEL,
+
   // Knowledge Base
   KB_CHUNK_SIZE: 800,
   KB_CHUNK_OVERLAP: 200,

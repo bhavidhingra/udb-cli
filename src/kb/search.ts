@@ -223,10 +223,11 @@ export function formatSearchResults(
   let currentChars = output.length;
 
   for (const r of results) {
-    const source = r.source_title || r.source_url || 'Unknown';
+    const title = r.source_title || 'Untitled';
+    const url = r.source_url || 'No URL';
     const snippet = r.content.slice(0, 500);
 
-    const entry = `[${r.source_type}] ${source}\n${snippet}...\n\n`;
+    const entry = `[${r.source_type}] ${title}\nSource ID: ${r.source_id}\nSource URL: ${url}\n${snippet}...\n\n`;
 
     if (currentChars + entry.length > maxChars) {
       output += '\n...(truncated)';

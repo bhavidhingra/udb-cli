@@ -13,6 +13,7 @@ import {
   type SDKMessage,
 } from "@anthropic-ai/claude-agent-sdk";
 import { z } from "zod";
+import { config } from "./config.js";
 import {
   search,
   ingestUrl,
@@ -76,9 +77,10 @@ function createKBMcpServer() {
           }
           const formatted = results
             .map((r, i) => {
-              const source = r.source_title || r.source_url || "Unknown";
-              // Show full chunk content (no truncation)
-              return `${i + 1}. [${r.source_type}] ${source} (${(r.similarity * 100).toFixed(1)}%)\n${r.content}`;
+              const title = r.source_title || "Untitled";
+              const url = r.source_url || "No URL";
+              // Show full chunk content (no truncation) with source details
+              return `${i + 1}. [${r.source_type}] ${title} (${(r.similarity * 100).toFixed(1)}%)\n   Source ID: ${r.source_id}\n   Source URL: ${url}\n${r.content}`;
             })
             .join("\n\n---\n\n");
           return {
@@ -373,6 +375,7 @@ async function streamClaudeResponse(
         includePartialMessages: true, // Enable streaming output
         env: process.env as { [key: string]: string | undefined }, // Pass through all env vars including auth
         pathToClaudeCodeExecutable: claudeCli, // Use system Claude CLI
+        ...(config.CLAUDE_MODEL ? { model: config.CLAUDE_MODEL } : {}),
       },
     });
 
