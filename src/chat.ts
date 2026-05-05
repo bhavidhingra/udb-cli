@@ -131,7 +131,7 @@ function createKBMcpServer() {
       // Ingest URL/file tool
       tool(
         "kb_ingest",
-        "Ingest content from a URL or local file path into the knowledge base. Supports web articles, YouTube videos, tweets, and local files (.md, .txt, etc.).",
+        "Ingest content from a URL or local file path into the knowledge base. Supports web articles, YouTube videos, tweets, Confluence pages, Linear issues, and local files (.md, .txt, etc.).",
         {
           url: z.string().describe("The URL or local file path to ingest (e.g., https://example.com or /path/to/file.md or ~/notes.txt)"),
           title: z.string().optional().describe("Optional custom title"),
@@ -280,7 +280,7 @@ ${facts}
 You have access to these KB tools:
 - kb_search: Search the knowledge base for relevant content
 - kb_add: Add text content (notes, commands, snippets) to the KB
-- kb_ingest: Ingest content from URLs or local files (articles, YouTube videos, tweets, .md, .txt files)
+- kb_ingest: Ingest content from URLs or local files (articles, YouTube videos, tweets, Confluence pages, Linear issues, .md, .txt files)
 - kb_list: List all sources in the KB
 - kb_delete: Delete a source by ID
 - kb_get_source_chunks: Get ALL chunks from a specific source by its ID

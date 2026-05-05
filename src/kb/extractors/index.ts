@@ -8,6 +8,7 @@ export { extractVideoTranscript, extractVideoId, checkYtDlpAvailable, isYtDlpAva
 export { extractConfluence } from './confluence.js';
 export { extractGoogleDocs, isGoogleDocsUrl } from './google-docs.js';
 export { extractFile, isFilePath, resolvePath } from './file.js';
+export { extractLinear, isLinearUrl } from './linear.js';
 
 export type { ExtractedContent } from './article.js';
 
@@ -22,6 +23,7 @@ import { extractVideoTranscript } from './video.js';
 import { extractConfluence } from './confluence.js';
 import { extractGoogleDocs } from './google-docs.js';
 import { extractFile } from './file.js';
+import { extractLinear } from './linear.js';
 
 const EXTRACTORS: Record<
   SourceType,
@@ -35,6 +37,7 @@ const EXTRACTORS: Record<
   confluence: extractConfluence, // Atlassian Confluence via REST API
   google_docs: extractGoogleDocs, // Google Docs via OAuth API
   file: extractFile, // Local file extraction
+  linear: extractLinear, // Linear issues via GraphQL API
   other: extractArticle,
 };
 

@@ -35,6 +35,7 @@ const MIN_LENGTHS: Record<SourceType, number> = {
   confluence: 20, // Confluence pages can be short notes
   google_docs: 20, // Google Docs can be short notes
   file: 20, // Local files can be short
+  linear: 20, // Linear issues can be short
   other: 100,
 };
 

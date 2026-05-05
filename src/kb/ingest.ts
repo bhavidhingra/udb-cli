@@ -337,6 +337,11 @@ export function detectSourceType(url: string): SourceType {
     return 'google_docs';
   }
 
+  // Linear issues
+  if (/^(?:https?:\/\/)?linear\.app\/[^/]+\/issue\/[A-Z]+-\d+/i.test(url)) {
+    return 'linear';
+  }
+
   // Default to article
   return 'article';
 }
